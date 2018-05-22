@@ -4,7 +4,16 @@
 
 Should monitor clipboard for japanese characters 
 and parse the contents into colorful representation with 
-the option to lookup resulting sentence elements via mouse-over.
+the option to lookup some info for resulting sentence elements via mouse-over.
+
+Tentative workflow should look something like this:
+
+- copy large chunk of japanese text
+- parse sentence into structural elements highlighted by color 
+- ignore common particles and punctuation
+- lookup unknown words
+- save some of those to db
+- export resulting items for further study (Anki or similar)
 
 #### Build Setup
 
@@ -36,6 +45,19 @@ For example:
 躁狂性の方は反対に日本の悪口をいって心を養う。
 小出楢重『めでたき風景』より引用
 
+
+### Roadmap
+
+- more Electron goodness: tray, menus and such
+- add persistence: store items in db and so on
+- export session/items to csv/Anki compatible format
+- try different APIs for looking up data on the fly (jisho/tangorin/yourei/kotobank)
+- lookup elements from local sqlite DB, without additional web queries
+- import similar kanji data from Odyssey or similar DB
+- rearrange UI using popups, shrink vertical space
+- smart autosize based on window position
+- fix fontawesome
+- change color palette for parsed words
 
 ---
 
