@@ -16,30 +16,32 @@
 
     <!-- Display element info obtained from semantic tree -->
     <div class="level info" v-if="info">
-      <table class="table is-bordered is-narrow">
-        <thead>
-        <tr>
-          <th>Form</th>
-          <!-- combines all pos details -->
-          <th>Pos</th>
-          <th>Conjugated type</th>
-          <th>Conjugated form</th>
-          <th>Basic form</th>
-          <!-- roughly equivalent to pronunciation -->
-          <th>Reading</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td>{{ info.surface_form }}</td>
-          <td>{{ info.pos }}</td>
-          <td>{{ info.conjugated_type }}</td>
-          <td>{{ info.conjugated_form }}</td>
-          <td>{{ info.basic_form }}</td>
-          <td>{{ info.reading }}</td>
-        </tr>
-        </tbody>
-      </table>
+      <div class="level-item">
+        <table class="table is-bordered is-narrow">
+          <thead>
+          <tr>
+            <th>Form</th>
+            <!-- combines all pos details -->
+            <th>Pos</th>
+            <th>Conjugated type</th>
+            <th>Conjugated form</th>
+            <th>Basic form</th>
+            <!-- roughly equivalent to pronunciation -->
+            <th>Reading</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>{{ info.surface_form }}</td>
+            <td>{{ allPos(info) }}</td>
+            <td>{{ info.conjugated_type }}</td>
+            <td>{{ info.conjugated_form }}</td>
+            <td>{{ info.basic_form }}</td>
+            <td>{{ info.reading }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </div>
@@ -89,8 +91,17 @@
           ',',
           '?',
           '-',
-          ':'
-          // todo: japanese particles ('no', 'wo', 'wa' and so on)
+          ':',
+          '・',
+          // japanese particles ('no', 'wo', 'wa' and so on)
+          'が',
+          'は',
+          'を',
+          'に',
+          'か',
+          'だ',
+          'と',
+          'の'
         ],
         // parsed data
         elements: [],
@@ -133,12 +144,23 @@
           })
         }
       },
+      // Set word info as current
       showInfo (e) {
         this.info = e.word
       },
-      // Utility methods
+      // Utility methods (element is word info itself)
       isMinor (e) {
         return _.includes(this.excluded, e.surface_form)
+      },
+      allPos (e) {
+        // 品詞細分 1,2,3
+        let pos = []
+        for (let i = 1; i <= 3; i++) {
+          if (e[`pos_detail_${i}`] !== '*') {
+            pos.push(e[`pos_detail_${i}`])
+          }
+        }
+        return _.join(pos, '・')
       },
       nextRandomColor () {
         return '#' + (0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6)
@@ -153,6 +175,7 @@
 <style scoped lang="scss">
 
   .sentence {
+    -webkit-filter: drop-shadow(1px 1px 0.5px lightgray);
   }
 
   .element {
@@ -163,14 +186,18 @@
   .element:hover {
     cursor: pointer;
     background: lightcyan;
+    -webkit-filter: drop-shadow(0.5px 0.5px 0.5px lightgray);
+    -webkit-border-radius: 8px;
   }
 
   // minor elements should not be hoverable
   .minor {
     pointer-events: none;
+    -webkit-filter: opacity(50%);
   }
 
   .info {
+    font-size: 1.2em;
   }
 
 </style>
