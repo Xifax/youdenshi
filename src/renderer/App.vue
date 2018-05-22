@@ -15,12 +15,12 @@
 </template>
 
 <script>
-  import { app } from 'electron'
+  import { remote } from 'electron'
   export default {
     name: 'youdenshi',
     methods: {
       close () {
-        app.quit()
+        remote.getCurrentWindow().close()
       }
     }
   }
