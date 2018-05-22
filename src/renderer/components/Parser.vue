@@ -1,50 +1,76 @@
 <template>
 
-  <div class="parser container">
+  <div class="wrapper">
 
-    <!-- Sentence grid with intermittent colors -->
-    <div class="level">
-      <div class="section sentence">
-        <div class="element" v-for="e in elements"
-             v-bind:style="{ color: e.color }"
-             v-bind:class="{ minor: e.minor }"
-             @mouseover="showInfo(e)">
-          {{ e.word.surface_form }}
+    <div class="parser container">
+
+      <!-- Sentence grid with intermittent colors -->
+      <div class="level">
+        <div class="section sentence">
+          <div class="element" v-for="e in elements"
+               v-bind:style="{ color: e.color }"
+               v-bind:class="{ minor: e.minor }"
+               @mouseover="showInfo(e)"
+               @click="queryJisho(e)">
+            {{ e.word.surface_form }}
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Display element info obtained from semantic tree -->
-    <div class="level info" v-if="info">
-      <div class="level-item">
-        <table class="table is-bordered is-narrow">
-          <thead>
-          <tr>
-            <th>Form</th>
-            <!-- combines all pos details -->
-            <th>Pos</th>
-            <th>Conjugated type</th>
-            <th>Conjugated form</th>
-            <th>Basic form</th>
-            <!-- roughly equivalent to pronunciation -->
-            <th>Reading</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td>{{ info.surface_form }}</td>
-            <td>{{ allPos(info) }}</td>
-            <td>{{ info.conjugated_type }}</td>
-            <td>{{ info.conjugated_form }}</td>
-            <td>{{ info.basic_form }}</td>
-            <td>{{ info.reading }}</td>
-          </tr>
-          </tbody>
-        </table>
+      <!-- Display element info obtained from semantic tree -->
+      <div class="level info" v-if="info">
+        <div class="level-item">
+          <table class="table is-bordered is-narrow">
+            <thead>
+            <tr>
+              <th>Form</th>
+              <!-- combines all pos details -->
+              <th>Pos</th>
+              <th>Conjugated type</th>
+              <th>Conjugated form</th>
+              <th>Basic form</th>
+              <!-- roughly equivalent to pronunciation -->
+              <th>Reading</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>{{ info.surface_form }}</td>
+              <td>{{ allPos(info) }}</td>
+              <td>{{ info.conjugated_type }}</td>
+              <td>{{ info.conjugated_form }}</td>
+              <td>{{ info.basic_form }}</td>
+              <td>{{ info.reading }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-  </div>
+      <div class="level">
+        <div class="level-item">
+          <article class="message">
+            <div class="message-body">
+              <div class="level-item" v-if="loading">
+                <rotate-square></rotate-square>
+              </div>
+              <span v-if="examples.length === 0">
+              <p>
+                Hover on sentence element to display generic NTLK info.
+              </p>
+              <p>
+                Click on item to query for additional info from Jisho.
+              </p>
+              </span>
+              <p class="example" v-for="e in examples" v-html="e.kanji"></p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+    </div> <!-- /Parser -->
+
+  </div> <!-- /Wrapper -->
 
 </template>
 
@@ -52,11 +78,18 @@
   import {tokenize} from 'kuromojin'
   import {clipboard} from 'electron'
   import {_} from 'lodash'
+  import RotateSquare from './RotateSquare'
+  // import {API} from 'unofficial-jisho-api'
+  const API = require('unofficial-jisho-api')
+  const jisho = new API()
 
   // Roughly correct JCK unicode range
   const japanese = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f]/
   export default {
     name: 'parser',
+    components: {
+      RotateSquare
+    },
     data () {
       return {
         // style data
@@ -107,7 +140,11 @@
         ],
         // parsed data
         elements: [],
-        info: null
+        info: null,
+        item: null,
+        examples: [],
+        // UI
+        loading: false
       }
     },
     mounted () {
@@ -115,7 +152,7 @@
       // clipboard.writeText('「刀の投擲の練習？」「すっぽ抜けただけです」 ')
       clipboard.writeText(`私などは憂鬱性であったらしい。 憂鬱の方は妙に日本が恋しくなり日本が世界一番だといい出す癖がある。 躁狂性の方は反対に日本の悪口をいって心を養う。
 小出楢重『めでたき風景』より引用`)
-      setTimeout(this.checkClipboard, 1000)
+      setTimeout(this.checkClipboard, 0)
     },
     methods: {
       checkClipboard () {
@@ -149,6 +186,21 @@
       // Set word info as current
       showInfo (e) {
         this.info = e.word
+      },
+      // Lookup additional info
+      queryJisho (e) {
+        this.item = e.word
+        this.loading = true
+        this.examples.length = 0
+        jisho.searchForExamples(e.word.surface_form).then(result => {
+          // console.log(result)
+
+          _.forEach(result.results, (value, key) => {
+            value.kanji = _.replace(value.kanji, this.item.surface_form, `<strong>${this.item.surface_form}</strong>`)
+          })
+          this.examples = result.results
+          this.loading = false
+        })
       },
       // Utility methods (element is word info itself)
       isMinor (e) {
@@ -189,7 +241,7 @@
     cursor: pointer;
     background: lightcyan;
     -webkit-filter: drop-shadow(0.5px 0.5px 0.5px lightgray);
-    -webkit-border-radius: 8px;
+    /*-webkit-border-radius: 8px;*/
   }
 
   // minor elements should not be hoverable
@@ -200,6 +252,10 @@
 
   .info {
     font-size: 1.2em;
+  }
+
+  .example {
+    font-size: 1.4em;
   }
 
 </style>

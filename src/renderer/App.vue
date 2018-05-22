@@ -7,10 +7,15 @@
       <div class="controls aligned">
         <div
           @click="close()"
-          class="button is-small is-primary is-outlined is-inverted">close</div>
+          class="button is-small is-primary is-outlined is-inverted">
+          <strong>X</strong>
+          <!--<span class="icon is-small">-->
+            <!--<i class="fas fa-close"></i>-->
+          <!--</span>-->
+        </div>
       </div>
     </div>
-      <router-view></router-view>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -28,6 +33,11 @@
 
 <style lang="scss">
   /* CSS */
+
+  /*@import url('~@/assets/css/font-awesome.min.css');*/
+
+  //$fa-font-path:'~font-awesome/fonts';
+  //@import '~font-awesome/scs/font-awesome';
 
   /* Simulate window titlebar */
   .titlebar {
